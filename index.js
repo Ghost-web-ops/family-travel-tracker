@@ -9,20 +9,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+// Vercel ستوفر المنفذ تلقائيًا
 const port = process.env.PORT || 3000;
 
-// -- التغيير الأهم: استخدام pg.Pool بدلاً من pg.Client --
-// Pool يدير الاتصالات بشكل أكثر كفاءة في البيئات السحابية
+// -- التغيير الأهم: استخدام pg.Pool لإدارة الاتصالات بكفاءة --
 const db = new pg.Pool({
-  connectionString: process.env.DATABASE_URL, // Vercel و Render يفضلون استخدام رابط كامل
-  // في حالة عدم توفر DATABASE_URL, سيستخدم التفاصيل المنفصلة
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  // Vercel تستخدم هذا المتغير للاتصال الآمن. قم بإنشائه في إعدادات Vercel.
+  connectionString: process.env.DATABASE_URL, 
   ssl: {
-    rejectUnauthorized: false // ضروري للاتصال بقواعد البيانات على Render/Supabase
+    rejectUnauthorized: false // ضروري للاتصال بقواعد البيانات على Supabase/Render
   }
 });
 
@@ -34,18 +29,17 @@ app.set('view engine', 'ejs');
 
 let currentUserId = 1;
 
-// ... باقي الدوال تبقى كما هي، لأن db.query() تعمل بنفس الطريقة مع Pool
+// ملاحظة هامة للمطور: استخدام متغير عام مثل 'currentUserId'
+// غير مناسب للتطبيقات الحقيقية لأنه سيتم مشاركته بين كل المستخدمين.
+// الحل الاحترافي هو استخدام الجلسات (Sessions) أو التوكن (Tokens)
+// لإدارة حالة كل مستخدم على حدة.
 
 async function checkVisisted() {
   const result = await db.query(
     "SELECT country_code FROM visited_countries WHERE user_id = $1;",
     [currentUserId]
   );
-  let countries = [];
-  result.rows.forEach((country) => {
-    countries.push(country.country_code);
-  });
-  return countries;
+  return result.rows.map(country => country.country_code);
 }
 
 async function getAllUsers() {
@@ -53,57 +47,55 @@ async function getAllUsers() {
     return result.rows;
 }
 
-// المسار الرئيسي لعرض الصفحة
 app.get("/", async (req, res) => {
   try {
     const users = await getAllUsers();
-    const countries = await checkVisisted();
-    const currentUser = users.find((user) => user.id == currentUserId);
+    // التأكد من أن currentUserId هو رقم
+    const currentUser = users.find((user) => user.id === currentUserId);
     
-    if (!currentUser) {
-        // إذا لم يتم العثور على المستخدم، اعرض الصفحة مع بيانات افتراضية
-        return res.render("index.ejs", {
-            countries: [], total: 0, users: users, color: "grey", currentUser: {name: "Guest"}, error: "Please select a user."
-        });
+    if (!currentUser && users.length > 0) {
+        // إذا لم يتم العثور على المستخدم الحالي، استخدم أول مستخدم كافتراضي
+        currentUserId = users[0].id;
+        res.redirect("/"); // إعادة تحميل الصفحة بالمستخدم الصحيح
+        return;
     }
 
+    const countries = await checkVisisted();
+    
     res.render("index.ejs", {
       countries: countries,
       total: countries.length,
       users: users,
-      color: currentUser.color,
+      color: currentUser?.color || "grey", // استخدام Optional Chaining للأمان
       currentUser: currentUser, 
       error: null,
     });
   } catch(err) {
-    console.error("Error fetching data for root route:", err);
-    res.status(500).send("Error connecting to the database. Please check the server logs.");
+    console.error("Error connecting to database or fetching data:", err);
+    res.status(500).send("<h3>Error connecting to the database.</h3><p>Please check the server logs and ensure your Environment Variables on Vercel are set correctly.</p>");
   }
 });
 
-// ... باقي مسارات POST تبقى كما هي ...
-
 app.post("/add", async (req, res) => {
     const input = req.body["country"];
-    const users = await getAllUsers();
-    const currentUser = users.find((user) => user.id == currentUserId);
   
     try {
+      const users = await getAllUsers();
+      const currentUser = users.find((user) => user.id === currentUserId);
+      
       const result = await db.query(
         "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
-        [input.toLowerCase()]
+        [input.toLowerCase().trim()]
       );
       
       if (result.rows.length === 0) {
-        throw new Error("This country does not exist in our database.");
+        throw new Error("Country not found in the database. Please check the spelling.");
       }
   
-      const data = result.rows[0];
-      const countryCode = data.country_code;
-      
+      const countryCode = result.rows[0].country_code;
       const visitedCountries = await checkVisisted();
       if (visitedCountries.includes(countryCode)) {
-         throw new Error("Country has already been added.");
+         throw new Error("You have already added this country.");
       }
   
       await db.query(
@@ -114,12 +106,14 @@ app.post("/add", async (req, res) => {
       res.redirect("/");
   
     } catch (err) {
+      const users = await getAllUsers();
       const countries = await checkVisisted();
+      const currentUser = users.find((user) => user.id === currentUserId);
       res.render("index.ejs", {
         countries: countries,
         total: countries.length,
         users: users,
-        color: currentUser.color,
+        color: currentUser?.color || "grey",
         currentUser: currentUser,
         error: err.message,
       });
@@ -130,7 +124,7 @@ app.post("/add", async (req, res) => {
     if (req.body.add === "new") {
       res.render("new.ejs");
     } else {
-      currentUserId = req.body.user;
+      currentUserId = parseInt(req.body.user); // تحويل القيمة إلى رقم لضمان المقارنة الصحيحة
       res.redirect("/");
     }
   });
@@ -149,8 +143,11 @@ app.post("/add", async (req, res) => {
     res.redirect("/");
   });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+// يتم تجاهل هذا السطر عند النشر على Vercel، ولكنه ضروري للتشغيل المحلي
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+        console.log(`Server running locally on http://localhost:${port}`);
+    });
+}
 
 export default app;
