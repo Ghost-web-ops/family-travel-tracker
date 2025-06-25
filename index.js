@@ -2,16 +2,21 @@ import 'dotenv/config'; // الطريقة الحديثة لتفعيل متغير
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// ضروري للعمل مع EJS و __dirname في ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // إعداد الاتصال بقاعدة البيانات باستخدام متغيرات البيئة
 const db = new pg.Client({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
-  // ملاحظة: تأكد من أن اسم المتغير هنا يطابق ما قمت بإعداده على Render/Vercel
-  database: process.env.DB_DATABASE, 
+  database: process.env.DB_DATABASE,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
 });
@@ -19,6 +24,11 @@ db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+// تحديد مسار مجلد views لـ EJS
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 
 let currentUserId = 1;
 
@@ -52,7 +62,6 @@ app.get("/", async (req, res) => {
     total: countries.length,
     users: users,
     color: currentUser.color,
-    // تم إصلاح الخطأ: إضافة currentUser لكي يتمكن EJS من عرضه
     currentUser: currentUser, 
     error: null,
   });
@@ -91,7 +100,6 @@ app.post("/add", async (req, res) => {
 
   } catch (err) {
     const countries = await checkVisisted();
-    // تم إصلاح الخطأ: إضافة currentUser لكي يتمكن EJS من عرضه عند حدوث خطأ
     res.render("index.ejs", {
       countries: countries,
       total: countries.length,
@@ -129,5 +137,8 @@ app.post("/new", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
+
+// Vercel needs this to handle the Express app correctly.
+export default app;
