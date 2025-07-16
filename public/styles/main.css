@@ -97,10 +97,9 @@ button {
 .total-count {
   font-family: "Roboto", sans-serif;
   color: white;
-  position: absolute;
-  padding: 15px;
-  left: 0;
-  bottom: 0;
+  text-align: center; /* لتوسيط النص */
+  margin-top: 20px;   /* لإضافة مسافة فوقه */
+  font-size: 1.5rem;  /* لتكبير الخط قليلًا */
 }
 .list-container {
   width: 90%;
