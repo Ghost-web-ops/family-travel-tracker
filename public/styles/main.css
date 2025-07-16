@@ -15,11 +15,10 @@ background-color: #1e293b;
 color: white;
 margin: 0;
 display: flex;
-flex-direction: column;
-align-items: center; /* توسيط العناصر أفقياً /
-padding-top: 10px; / تقليل الهامش العلوي */
+flex-direction: column; /* ترتيب العناصر عمودياً /
+align-items: center; / توسيط العناصر أفقياً /
+padding-top: 20px; / لإضافة بعض المسافة من الأعلى */
 }
-
 
 .ag-canvas {
   display: -webkit-flex;
@@ -100,59 +99,71 @@ button {
   cursor: pointer;
 }
 
-.total-count {
-font-family: "Roboto", sans-serif;
-color: white;
-text-align: center;
-margin-bottom: 20px;
-font-size: 1.2rem;
-}
-.list-container {
-background-color: #334155;
-padding: 20px;
-border-radius: 8px;
-margin-bottom: 10px;
-width: 80%;
-max-width: 600px;
+/* New styles for the fixed overlay box */
+
+.info-overlay {
+    position: fixed; /* أهم خاصية: لتثبيت العنصر على الشاشة */
+    bottom: 20px;    /* مسافة من أسفل الشاشة */
+    left: 20px;      /* مسافة من يسار الشاشة */
+    z-index: 10;     /* لضمان ظهوره فوق الخريطة */
 }
 
+.list-container {
+    width: 300px; /* عرض ثابت للقائمة */
+    background-color: #1f2937e6; /* لون خلفية مع شفافية بسيطة */
+    backdrop-filter: blur(5px); /* تأثير بلور للخلفية (اختياري) */
+    border: 1px solid #4B5563;
+    color: #E5E7EB;
+    border-radius: 8px;
+    padding: 15px;
+}
 
 .list-container h3 {
-  font-size: 1.2rem; /* تصغير حجم الخط للعنوان */
-  margin-bottom: 15px;
-  border-bottom: 1px solid #4B5563;
-  padding-bottom: 8px;
-  text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    text-align: center;
+    border-bottom: 1px solid #4B5563;
+    padding-bottom: 10px;
 }
 
 .list-container ul {
-  list-style-type: none;
-  padding: 0;
+    list-style-type: none;
+    padding: 0;
+    max-height: 150px; /* تحديد أقصى ارتفاع للقائمة مع إمكانية الـ scroll */
+    overflow-y: auto;  /* إضافة scroll عند زيادة عدد الدول */
 }
 
 .list-container li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #374151;
-  padding: 10px 15px; /* تصغير الحشو الداخلي */
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 1rem; /* تصغير حجم خط عناصر القائمة */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 5px;
+    font-size: 1rem;
 }
 
 .delete-button {
-  background: none;
-  border: none;
-  color: #F87171;
-  font-size: 1.2rem; /* تصغير حجم أيقونة الحذف */
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
-  padding: 0 5px; /* إضافة حشو بسيط لتسهيل النقر */
+    background: none;
+    border: none;
+    color: #9CA3AF;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
 .delete-button:hover {
-  transform: scale(1.2);
+    color: #F87171;
+}
+
+.total-count {
+    color: white;
+    text-align: center;
+    margin-top: 10px; /* مسافة بين القائمة والعداد */
+    font-size: 1rem;
+    font-weight: 500;
+    background-color: #1f2937e6;
+    backdrop-filter: blur(5px);
+    padding: 5px 10px;
+    border-radius: 6px;
 }
 .tab-view {
   margin: 0;

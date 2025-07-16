@@ -7,6 +7,7 @@
   <title>Travel Tracker</title>
   <link rel="stylesheet" href="./styles/main.css">
   <link rel="icon" type="image/png" href="/favicon.png">
+  
 </head>
 
 <body>
@@ -386,23 +387,26 @@
         d="M562.709,526.998L561.219,526.697L560.274,527.059L558.917,526.548L557.776,526.516L555.989,525.158L553.821,524.698L552.996,522.803L552.989,521.752L551.788,521.432L548.615,518.177L547.733,516.471L547.169,515.946L546.09,513.602L549.224,513.922L550.135,514.26L551.082,514.192L552.634,512.299L555.073,509.904L556.076,509.676L556.417,508.67L558.014,507.516L560.138,507.12L560.319,508.2L562.658,508.142L563.957,508.754L564.562,509.472L565.896,509.683L567.353,510.617L567.359,514.312L566.813,516.347L566.692,518.55L567.143,519.426L566.826,521.172L566.402,521.443L565.663,523.593z" />
     </svg>
   </section>
-  <div class="list-container">
-      <h3>My List:</h3>
-      <ul>
-        <% countries.forEach(country => { %>
-          <li>
-            <span><%= country.country_name %></span>
-            <form action="/delete" method="post" style="display: inline;">
-              <input type="hidden" name="countryCode" value="<%= country.country_code %>">
-              <button type="submit" class="delete-button">🗑️</button>
-            </form>
-          </li>
-        <% }) %>
-      </ul>
+  <div class="info-overlay">
+
+    <div class="list-container">
+        <h3>My List:</h3>
+        <ul>
+            <% countries.forEach(country => { %>
+            <li>
+                <span><%= country.country_name %></span>
+                <form action="/delete" method="post" style="display: inline;">
+                    <input type="hidden" name="countryCode" value="<%= country.country_code %>">
+                    <button type="submit" class="delete-button">🗑️</button>
+                </form>
+            </li>
+            <% }) %>
+        </ul>
     </div>
 
     <h2 class="total-count">Total Countries: <%= total %></h2>
 
+</div>
     <script>
       const visitedCountries = <%- JSON.stringify(countries || []) %>;
       const countryCodes = visitedCountries.map(country => country.country_code);
