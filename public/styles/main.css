@@ -451,47 +451,49 @@ button {
     display: none;
   }
 }
-/* Styling for the new list section */
+/* Styling for the new list section - Updated */
 
 .list-container {
-  width: 80%;
-  max-width: 600px; /* يضمن ألا يكون عريضًا جدًا على الشاشات الكبيرة */
-  margin: 40px auto; /* يضع مسافة من الأعلى والأسفل ويوسّط القائمة */
+  width: 90%;
+  max-width: 350px; /* تصغير العرض الأقصى للقائمة */
+  margin: 40px auto 10px auto; /* تقليل المسافة السفلية */
   color: #E5E7EB;
 }
 
 .list-container h3 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+  font-size: 1.2rem; /* تصغير حجم الخط للعنوان */
+  margin-bottom: 15px;
   border-bottom: 1px solid #4B5563;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
+  text-align: center;
 }
 
 .list-container ul {
-  list-style-type: none; /* إزالة النقاط من القائمة */
+  list-style-type: none;
   padding: 0;
 }
 
 .list-container li {
   display: flex;
-  justify-content: space-between; /* يضع الاسم في جهة والزر في الجهة الأخرى */
+  justify-content: space-between;
   align-items: center;
-  background-color: #374151; /* لون خلفية لكل عنصر */
-  padding: 15px;
+  background-color: #374151;
+  padding: 10px 15px; /* تصغير الحشو الداخلي */
   border-radius: 8px;
-  margin-bottom: 10px; /* مسافة بين العناصر */
-  font-size: 1.1rem;
+  margin-bottom: 8px;
+  font-size: 1rem; /* تصغير حجم خط عناصر القائمة */
 }
 
 .delete-button {
   background: none;
   border: none;
-  color: #F87171; /* لون أحمر خفيف لأيقونة الحذف */
-  font-size: 1.5rem;
+  color: #F87171;
+  font-size: 1.2rem; /* تصغير حجم أيقونة الحذف */
   cursor: pointer;
   transition: transform 0.2s ease-in-out;
+  padding: 0 5px; /* إضافة حشو بسيط لتسهيل النقر */
 }
 
 .delete-button:hover {
-  transform: scale(1.2); /* تأثير عند مرور الماوس فوق الزر */
+  transform: scale(1.2);
 }
