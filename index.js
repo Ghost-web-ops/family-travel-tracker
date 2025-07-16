@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import express from "express";
 import bodyParser from "body-parser";
-import pg from "pg";
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const app = express();
 const port = 3000;
 
-const db = new pg.Client({
+const db = new pg.Pool({
  // user: "postgres",
   //host: "localhost",
   //database: "world",
