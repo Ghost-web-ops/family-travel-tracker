@@ -388,13 +388,35 @@
   </section>
   <h2 class="total-count">Total Countries: <%=total%>
   </h2>
+  <div class="list-container">
+  <h3>My List:</h3>
+  <ul>
+    <% countries.forEach(country => { %>
+      <li>
+        <span><%= country.country_name %></span>
+        <form action="/delete" method="post" style="display: inline;">
+          <input type="hidden" name="countryCode" value="<%= country.country_code %>">
+          <button type="submit" class="delete-button">🗑️</button>
+        </form>
+      </li>
+    <% }) %>
+  </ul>
+</div>
   <script>
-    const country_codes = "<%= countries %>".split(",")
-    console.log(typeof ("<%= countries %>"))
-    country_codes.forEach(code => {
-      document.getElementById(code).style.fill = "<%= color %>"
-    });
-  </script>
+      // نمرر مصفوفة الدول ككائن JSON
+      const visitedCountries = <%- JSON.stringify(countries || []) %>;
+
+      // نستخرج رموز الدول فقط من المصفوفة
+      const countryCodes = visitedCountries.map(country => country.country_code);
+
+      // نقوم بتلوين كل دولة في الخريطة
+      countryCodes.forEach(code => {
+        const element = document.getElementById(code);
+        if (element) { // نتأكد أن العنصر موجود قبل تلوينه
+          element.style.fill = "<%= color %>";
+        }
+      });
+    </script>
 </body>
 
 </html>

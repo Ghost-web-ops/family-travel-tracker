@@ -30,14 +30,14 @@ let users = [
 
 async function checkVisisted() {
   const result = await db.query(
-    "SELECT country_code FROM visited_countries JOIN users ON users.id = user_id WHERE user_id = $1; ",
+    "SELECT c.country_code, c.country_name FROM visited_countries vc JOIN countries c ON c.country_code = vc.country_code WHERE vc.user_id = $1 ORDER BY c.country_name ASC;",
     [currentUserId]
   );
-  let countries = [];
-  result.rows.forEach((country) => {
-    countries.push(country.country_code);
-  });
-  return countries;
+  
+  // لطباعة البيانات والتأكد منها في سجلات Vercel
+  console.log("Visited countries data:", result.rows); 
+  
+  return result.rows;
 }
 
 async function getCurrentUser() {
@@ -111,6 +111,20 @@ app.post("/add", async (req, res) => {
   } catch (err) {
     console.log(err);
     // يمكنك التعامل مع الأخطاء العامة هنا إذا أردت
+    res.redirect("/");
+  }
+});
+app.post("/delete", async (req, res) => {
+  const countryCode = req.body.countryCode; // سنرسل هذا من الواجهة الأمامية
+
+  try {
+    await db.query(
+      "DELETE FROM visited_countries WHERE country_code = $1 AND user_id = $2",
+      [countryCode, currentUserId]
+    );
+    res.redirect("/"); // أعد التوجيه إلى الصفحة الرئيسية بعد الحذف
+  } catch (err) {
+    console.log(err);
     res.redirect("/");
   }
 });
