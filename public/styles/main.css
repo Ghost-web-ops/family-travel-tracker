@@ -9,15 +9,13 @@ html {
 html {
   height: 100%;
 }
+html,
 body {
-font-family: "Roboto", sans-serif;
-background-color: #1e293b;
-color: white;
-margin: 0;
-display: flex;
-flex-direction: column; /* ترتيب العناصر عمودياً /
-align-items: center; / توسيط العناصر أفقياً /
-padding-top: 20px; / لإضافة بعض المسافة من الأعلى */
+  height: 100%;
+}
+body {
+  background: #21252b;
+  font-family: "Roboto", sans-serif;
 }
 
 .ag-canvas {
