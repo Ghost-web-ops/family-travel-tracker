@@ -451,3 +451,47 @@ button {
     display: none;
   }
 }
+/* Styling for the new list section */
+
+.list-container {
+  width: 80%;
+  max-width: 600px; /* يضمن ألا يكون عريضًا جدًا على الشاشات الكبيرة */
+  margin: 40px auto; /* يضع مسافة من الأعلى والأسفل ويوسّط القائمة */
+  color: #E5E7EB;
+}
+
+.list-container h3 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #4B5563;
+  padding-bottom: 10px;
+}
+
+.list-container ul {
+  list-style-type: none; /* إزالة النقاط من القائمة */
+  padding: 0;
+}
+
+.list-container li {
+  display: flex;
+  justify-content: space-between; /* يضع الاسم في جهة والزر في الجهة الأخرى */
+  align-items: center;
+  background-color: #374151; /* لون خلفية لكل عنصر */
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px; /* مسافة بين العناصر */
+  font-size: 1.1rem;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  color: #F87171; /* لون أحمر خفيف لأيقونة الحذف */
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.delete-button:hover {
+  transform: scale(1.2); /* تأثير عند مرور الماوس فوق الزر */
+}
