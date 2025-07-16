@@ -18,7 +18,6 @@ const db = new pg.Pool({
     rejectUnauthorized: false,
   }
 });
-db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
