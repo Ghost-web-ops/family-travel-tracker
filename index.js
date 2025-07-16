@@ -1,100 +1,111 @@
-import 'dotenv/config'; 
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
 
-console.log("Attempting to create a new DB pool...");
-
-const db = new pg.Pool({
-  connectionString: process.env.DATABASE_URL, 
+const db = new pg.Client({
+ // user: "postgres",
+  //host: "localhost",
+  //database: "world",
+  //password: "123456",
+  //port: 5432,
+  onnectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   }
 });
-
-console.log("DB pool created. Setting up middleware.");
+db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
 
 let currentUserId = 1;
 
+let users = [
+  { id: 1, name: "Angela", color: "teal" },
+  { id: 2, name: "Jack", color: "powderblue" },
+];
+
 async function checkVisisted() {
-  console.log(`Checking visited for user: ${currentUserId}`);
   const result = await db.query(
-    "SELECT country_code FROM visited_countries WHERE user_id = $1;",
+    "SELECT country_code FROM visited_countries JOIN users ON users.id = user_id WHERE user_id = $1; ",
     [currentUserId]
   );
-  console.log("Visited countries fetched.");
-  return result.rows.map(country => country.country_code);
+  let countries = [];
+  result.rows.forEach((country) => {
+    countries.push(country.country_code);
+  });
+  return countries;
 }
 
-async function getAllUsers() {
-    console.log("Attempting to get all users...");
-    const result = await db.query("SELECT * FROM users ORDER BY id");
-    console.log(`Successfully fetched ${result.rows.length} users.`);
-    return result.rows;
+async function getCurrentUser() {
+  const result = await db.query("SELECT * FROM users");
+  users = result.rows;
+  return users.find((user) => user.id == currentUserId);
 }
 
 app.get("/", async (req, res) => {
-  console.log("Root route ('/') accessed.");
-  try {
-    const users = await getAllUsers();
-    const currentUser = users.find((user) => user.id === currentUserId);
-    
-    if (!currentUser && users.length > 0) {
-        currentUserId = users[0].id;
-        console.log(`Current user not found, redirecting to user ID: ${currentUserId}`);
-        res.redirect("/");
-        return;
-    }
+  const countries = await checkVisisted();
+  const currentUser = await getCurrentUser();
+  res.render("index.ejs", {
+    countries: countries,
+    total: countries.length,
+    users: users,
+    color: currentUser.color,
+  });
+});
+app.post("/add", async (req, res) => {
+  const input = req.body["country"];
+  const currentUser = await getCurrentUser();
 
-    const countries = await checkVisisted();
-    
-    console.log("Rendering index.ejs page.");
-    res.render("index.ejs", {
-      countries: countries,
-      total: countries.length,
-      users: users,
-      color: currentUser?.color || "grey",
-      currentUser: currentUser, 
-      error: null,
-    });
-  } catch(err) {
-    console.error("--- CRITICAL ERROR IN ROOT ROUTE ---");
-    console.error(err); // طباعة الخطأ الكامل
-    res.status(500).send(`<h3>Error connecting to the database.</h3><p>Please check the server logs and ensure your Environment Variables on Vercel are set correctly.</p><pre>${err.stack}</pre>`);
+  try {
+    const result = await db.query(
+      "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
+      [input.toLowerCase()]
+    );
+
+    const data = result.rows[0];
+    const countryCode = data.country_code;
+    try {
+      await db.query(
+        "INSERT INTO visited_countries (country_code, user_id) VALUES ($1, $2)",
+        [countryCode, currentUserId]
+      );
+      res.redirect("/");
+    } catch (err) {
+      console.log(err);
+    }
+  } catch (err) {
+    console.log(err);
   }
 });
 
-// ... باقي مسارات POST تبقى كما هي ...
-
-app.post("/add", async (req, res) => {
-    // ... الكود كما هو
-});
- 
 app.post("/user", async (req, res) => {
-    // ... الكود كما هو
+  if (req.body.add === "new") {
+    res.render("new.ejs");
+  } else {
+    currentUserId = req.body.user;
+    res.redirect("/");
+  }
 });
- 
+
 app.post("/new", async (req, res) => {
-    // ... الكود كما هو
+  const name = req.body.name;
+  const color = req.body.color;
+
+  const result = await db.query(
+    "INSERT INTO users (name, color) VALUES($1, $2) RETURNING *;",
+    [name, color]
+  );
+
+  const id = result.rows[0].id;
+  currentUserId = id;
+
+  res.redirect("/");
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(port, () => {
-        console.log(`Server running locally on http://localhost:${port}`);
-    });
-}
-
-export default app;
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
